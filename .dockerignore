@@ -1,0 +1,13 @@
+.env
+.git
+.gitignore
+vendor
+node_modules
+.phpunit.result.cache
+phpunit.xml
+storage/logs/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+.idea
+.vscode
