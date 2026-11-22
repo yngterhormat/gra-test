@@ -16,4 +16,8 @@ class Courier extends Model
         'name',
         'level',
     ];
+
+    protected $casts = [
+        'level' => 'integer',
+    ];
 }

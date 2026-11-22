@@ -8,7 +8,7 @@ use Illuminate\Contracts\Validation\Factory as Validator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class CourierController
+class CourierController extends \App\Http\Controllers\Controller
 {
     protected Validator $validator;
 
@@ -19,23 +19,26 @@ class CourierController
 
     public function index(Request $request): JsonResponse
     {
-        $query = Courier::query();
+        $perPage = $request->input('per_page', 15);
+        $perPage = min(max((int) $perPage, 1), 100);
 
+        $query = Courier::query();
         if ($name = $request->query('name')) {
-            $query->where('name', $name);
+            $name = str_replace(" ", "%", $name);
+            $query->where('name', 'ILIKE', '%'.$name.'%');
         }
 
         if ($level = $request->query('level')) {
             $query->whereIn('level', array_map('intval', explode(',', $level)));
         }
 
-        $orderBy = in_array($request->query('order_by'), ['id', 'name', 'level', 'created_at', 'updated_at'])
+        $orderBy = in_array($request->query('order_by'), ['id', 'name', 'level', 'created_at'])
             ? (string) $request->query('order_by')
             : 'created_at';
 
         $sortDirection = strtolower((string) $request->query('sort_by', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        $couriers = $query->orderBy($orderBy, $sortDirection)->paginate();
+        $couriers = $query->orderBy($orderBy, $sortDirection)->paginate($perPage);
 
         return ApiResponse::pagination($couriers);
     }
@@ -51,7 +54,7 @@ class CourierController
     {
         $validator = $this->validator->make($request->all(), [
             'name' => ['required', 'string', 'max:100'],
-            'level' => ['required', 'integer', 'max:255'],
+            'level' => ['required', 'integer', 'min:0', 'max:255'],
         ]);
 
         if ($validator->fails()) {
@@ -69,7 +72,7 @@ class CourierController
 
         $validator = $this->validator->make($request->all(), [
             'name' => ['required', 'string', 'max:100'],
-            'level' => ['required', 'integer', 'max:255'],
+            'level' => ['required', 'integer', 'min:0', 'max:255'],
         ]);
 
         if ($validator->fails()) {
