@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('couries', function (Blueprint $table) {
+        Schema::create('couriers', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name', 100);
             $table->unsignedTinyInteger('level');
@@ -19,6 +19,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('couries');
+        Schema::dropIfExists('couriers');
     }
 };
