@@ -1,3 +1,6 @@
+include .env
+export $(shell sed 's/=.*//' .env)
+
 SHELL := /bin/bash
 COMPOSE := docker-compose
 APP := $(COMPOSE) exec -T testapp
@@ -10,7 +13,7 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 DATENOW = $(shell date +%Y%m%d)
 DOCKER_COMPONENT = ${USER_DOCKER}/${COMPONENT}
 
-.PHONY: help up down build logs test test-suite test-file test-filter test-db-reset db-reset db-reset-test migrate seed shell tinker run_ut docker_build
+.PHONY: help up stop build logs test test-suite test-file test-filter test-db-reset db-reset db-reset-test migrate seed shell tinker run_ut docker_build
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -18,7 +21,7 @@ help: ## Show available targets
 up: ## Build and start all containers
 	$(COMPOSE) up -d
 
-down: ## Stop containers (keep data volumes)
+stop: ## Stop containers (keep data volumes)
 	$(COMPOSE) down
 
 build: ## Rebuild images and start containers
@@ -39,7 +42,7 @@ test-file: ## Run one test file: make test-file FILE=tests/Integration/UserAccou
 test-filter: ## Run tests matching a name: make test-filter FILTER=test_create_user_account
 	$(APP) ./vendor/bin/phpunit --filter $(FILTER)
 
-test-db-reset: ## Rebuild + seed the test database (db_test)
+test-db-reset: ## Rebuild + seed the test database (db)
 	$(APP) env DB_DATABASE=${DB_DATABASE} php artisan migrate:fresh --seed --force
 
 db-reset: ## Rebuild + seed the dev database (db)
@@ -57,12 +60,12 @@ shell: ## Open a shell inside the testapp container
 tinker: ## Open a tinker session inside the testapp container
 	$(COMPOSE) exec testapp php artisan tinker
 
-run_ut: ## Full unit test run: down + up + test-db-reset + test
-	@$(MAKE) --no-print-directory down
+run_ut: ## Full unit test run: stop + up + test-db-reset + test
+	@$(MAKE) --no-print-directory stop
 	@$(MAKE) --no-print-directory up
 	@$(MAKE) --no-print-directory test-db-reset
 	@$(MAKE) --no-print-directory test
 
-docker_build: down
+docker_build: stop
 	docker build --build-arg BUILD_DEVELOPMENT=$(bd) -t ${DOCKER_COMPONENT}:$(t).${BRANCH}-${DATENOW} . --no-cache
 	docker tag ${DOCKER_COMPONENT}:$(t).${BRANCH}-${DATENOW} ${DOCKER_COMPONENT}:$(t).${BRANCH}-${DATENOW}

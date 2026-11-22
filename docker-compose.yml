@@ -9,8 +9,6 @@ services:
       - .env
     environment:
       DB_HOST: testpostgres
-      REDIS_HOST: testredis
-      RABBITMQ_HOST: testrabbitmq
       RUN_MIGRATIONS: "true"
     volumes:
       - ./:/var/www/html

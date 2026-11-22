@@ -17,6 +17,20 @@ class CourierController
         $this->validator = $validator;
     }
 
+    public function index(): JsonResponse
+    {
+        $couriers = Courier::paginate();
+
+        return ApiResponse::success($couriers);
+    }
+
+    public function show(Request $request, $id): JsonResponse
+    {
+        $courier = Courier::findOrFail($id);
+
+        return ApiResponse::success($courier);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validator = $this->validator->make($request->all(), [
@@ -31,5 +45,32 @@ class CourierController
         $courier = Courier::create($validator->validated());
 
         return ApiResponse::created($courier);
+    }
+
+    public function update(Request $request, $id): JsonResponse
+    {
+        $courier = Courier::findOrFail($id);
+
+        $validator = $this->validator->make($request->all(), [
+            'name' => ['required', 'string', 'max:100'],
+            'level' => ['required', 'integer', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::validationError();
+        }
+
+        $courier->update($validator->validated());
+
+        return ApiResponse::success($courier->fresh());
+    }
+
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        $courier = Courier::findOrFail($id);
+
+        $courier->delete();
+
+        return ApiResponse::success($courier);
     }
 }
