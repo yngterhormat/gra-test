@@ -17,11 +17,27 @@ class CourierController
         $this->validator = $validator;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $couriers = Courier::paginate();
+        $query = Courier::query();
 
-        return ApiResponse::success($couriers);
+        if ($name = $request->query('name')) {
+            $query->where('name', $name);
+        }
+
+        if ($level = $request->query('level')) {
+            $query->whereIn('level', array_map('intval', explode(',', $level)));
+        }
+
+        $orderBy = in_array($request->query('order_by'), ['id', 'name', 'level', 'created_at', 'updated_at'])
+            ? (string) $request->query('order_by')
+            : 'created_at';
+
+        $sortDirection = strtolower((string) $request->query('sort_by', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $couriers = $query->orderBy($orderBy, $sortDirection)->paginate();
+
+        return ApiResponse::pagination($couriers);
     }
 
     public function show(Request $request, $id): JsonResponse

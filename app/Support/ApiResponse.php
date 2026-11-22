@@ -11,6 +11,7 @@ class ApiResponse
         return response()->json([
             'message' => $message,
             'data' => $data,
+            'other' => null,
         ]);
     }
 
@@ -19,6 +20,7 @@ class ApiResponse
         return response()->json([
             'message' => $message,
             'data' => $data,
+            'other' => null,
         ], 201);
     }
 
@@ -27,6 +29,18 @@ class ApiResponse
         return response()->json([
             'message' => $message,
             'data' => null,
+            'other' => null,
         ], 422);
+    }
+
+    public static function pagination($data, string $message = 'OK'): JsonResponse
+    {
+        $other = $data;
+        unset($other['data']);
+        return response()->json([
+            'message' => $message,
+            'data' => $data['data'],
+            'other' => $other,
+        ]);
     }
 }
